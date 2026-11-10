@@ -436,3 +436,8 @@ a.yt-face{position:relative;display:block;width:100%;aspect-ratio:16/9;backgroun
 #travel{background:#E3F0EE}
 #travel .travel-strip figure{background:#fff}
 #eggs .by-item img{object-fit:contain;background:#efe6d6}
+/* lift the floating buttons so a hosting badge in the corner never covers WhatsApp */
+.wa-float{bottom:78px}
+.to-top{bottom:148px}
+.snd-float{bottom:208px}
+@media (max-width:600px){.wa-float{bottom:70px}.to-top{bottom:138px}.snd-float{bottom:196px}}
