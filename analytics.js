@@ -4,7 +4,7 @@
    - Contact clicks (WhatsApp, email, Instagram) sent to GA4 as events */
 (function () {
   var GA_ID = 'G-K810WYDM3G';
-  var CLARITY_ID = '__CLARITY_ID__';
+  var CLARITY_ID = 'zbx8hebaab';
 
   // Don't count local testing
   if (!/paintingsuae\.com$/.test(location.hostname)) return;
