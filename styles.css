@@ -441,3 +441,14 @@ a.yt-face{position:relative;display:block;width:100%;aspect-ratio:16/9;backgroun
 .to-top{bottom:148px}
 .snd-float{bottom:208px}
 @media (max-width:600px){.wa-float{bottom:70px}.to-top{bottom:138px}.snd-float{bottom:196px}}
+
+/* Terms & copyright page */
+.legal{padding:10px 0 80px}
+.legal .wrap>*{max-width:760px}
+.legal h2{font-size:28px;margin:42px 0 12px}
+.legal p,.legal li{color:var(--muted);font-size:17px;line-height:1.65}
+.legal ul{padding-left:20px}
+.legal li{margin-bottom:8px}
+.legal li b{color:var(--ink)}
+.legal a{color:var(--aqua)}
+.legal-date{margin-top:40px;font-size:14px!important}
