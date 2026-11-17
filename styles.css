@@ -219,6 +219,8 @@ footer{background:var(--ink);color:#B8B3C8;font-size:14.5px;border-top:4px solid
 .lb-info h3{font-size:40px;margin:10px 0 8px}
 .lb-info .meta{color:var(--muted);font-size:15px}
 .lb-info .story-t{font-family:var(--serif);font-size:19px;line-height:1.5;margin:22px 0;color:var(--ink-2)}
+.lb-info .perfect{font-size:15px;line-height:1.5;margin:-8px 0 20px;color:var(--muted)}
+.lb-info .perfect b{color:var(--ink-2);font-weight:600}
 .lb-info .price{font-size:26px;margin:22px 0 26px}
 .lb-info .btn{width:100%;justify-content:center;margin-bottom:10px}
 .lb-info .note{font-size:13.5px;color:var(--muted);margin-top:12px}
@@ -452,3 +454,14 @@ a.yt-face{position:relative;display:block;width:100%;aspect-ratio:16/9;backgroun
 .legal li b{color:var(--ink)}
 .legal a{color:var(--aqua)}
 .legal-date{margin-top:40px;font-size:14px!important}
+
+/* questions (FAQ) on the homepage */
+#faq{background:var(--paper)}
+.faq-list{max-width:860px;margin-top:10px}
+.faq-list details{border-top:1px solid var(--line);padding:20px 0}
+.faq-list details:last-child{border-bottom:1px solid var(--line)}
+.faq-list summary{cursor:pointer;font-family:var(--serif);font-size:21px;line-height:1.35;color:var(--ink);list-style:none;display:flex;justify-content:space-between;gap:20px}
+.faq-list summary::-webkit-details-marker{display:none}
+.faq-list summary::after{content:"+";font-family:var(--sans);font-size:24px;line-height:1;color:var(--clay);flex:none}
+.faq-list details[open] summary::after{content:"−"}
+.faq-list details p{color:var(--muted);margin:12px 0 0;max-width:70ch;line-height:1.6}

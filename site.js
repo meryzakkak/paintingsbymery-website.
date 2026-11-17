@@ -235,7 +235,7 @@ function showMedia(p,i){
   } else if(m.type==="video"){
     h=`<video src="${m.src}" poster="${m.poster||""}" autoplay muted loop playsinline preload="auto" disablepictureinpicture></video>`;
   } else {
-    h=i===0?(p.img?pic(p,p.big,esc(p.title),false):`<div class="pending" style="width:100%;height:100%">Photo coming soon</div>`):`<img src="${m.src}" alt="${esc(p.title)}, ${esc(m.label)}">`;
+    h=i===0?(p.img?pic(p,p.big,esc(p.alt||p.title),false):`<div class="pending" style="width:100%;height:100%">Photo coming soon</div>`):`<img src="${m.src}" alt="${esc(p.title)}, ${esc(m.label)}">`;
   }
   if(p.sold&&i===0) h+=`<span class="ribbon">SOLD</span>`;
   if(INSTAGRAM_POSTS[p.title]) h+=`<a class="watch-btn" href="${INSTAGRAM_POSTS[p.title]}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Watch</a>`;
@@ -254,7 +254,8 @@ function showMedia(p,i){
 const BOOK_URL = "art-as-my-therapy.pdf";
 // edited photos live in images/<n>.jpg (large) and images/<n>-m.jpg (medium)
 const SIZES = {"47": [637, 900], "49": [629, 900], "46": [888, 900], "7": [635, 900], "48": [675, 900], "8": [726, 900], "4": [900, 693], "25": [736, 900], "9": [778, 900], "0": [607, 900], "2": [887, 900], "11": [664, 900], "13": [900, 897], "18": [675, 900], "26": [711, 900], "36": [883, 900], "50": [675, 900], "24": [701, 900], "37": [660, 900], "38": [394, 900], "6": [591, 900], "12": [658, 900], "45": [900, 714], "23": [900, 659], "3": [884, 900], "51": [900, 637], "5": [675, 900], "28": [648, 900], "22": [824, 900], "14": [622, 900], "16": [719, 900], "17": [665, 900], "27": [675, 900], "30": [900, 899], "29": [662, 900], "1": [705, 900], "10": [659, 900], "19": [671, 900], "20": [658, 900], "31": [717, 900], "32": [591, 900], "33": [715, 900], "34": [603, 900], "35": [900, 896], "39": [681, 900], "40": [900, 667], "41": [671, 900], "42": [631, 900], "43": [625, 900], "44": [611, 900], "52": [765, 900], "53": [675, 900], "aries": [900, 900], "n3": [900, 629], "n4": [661, 900], "n8": [583, 900], "n11": [900, 900], "n15": [900, 900], "n21": [763, 900], "n25": [675, 900], "n40": [900, 876], "n41": [672, 900], "ice": [566, 869], "bottle": [315, 900], "psun": [582, 900], "florist": [675, 900], "fbg": [784, 900], "fb1": [725, 714], "fb2": [680, 900], "fb3": [900, 881], "fb4": [738, 900]};
-const SALE = 0.40;   // set to 0 when the sale ends
+const SALE_END = "2027-02-14";   // last day of the 40% sale (Mery: "keep till Valentine")
+const SALE = Date.now() <= Date.parse(SALE_END+"T23:59:59+04:00") ? 0.40 : 0;
 // the sale applies only to paintings from 2024 and earlier (not 2025 or 2026)
 const saleOf = p => (SALE && p.price && !p.sold && !(p.year >= 2025)) ? SALE : 0;
 const nowPrice = p => Math.round(p.price*(1-saleOf(p)));
@@ -267,75 +268,342 @@ const waLink = msg => `https://wa.me/${WA}?text=${encodeURIComponent(msg)}`;
 
 const ALSO_IN={"Ashes Statue":["Faces We Know"],"You Are My Universe":["Words Expression"],"Somewhere Something Incredible":["Words Expression"]};
 const inSeries=(p,s)=>p.series===s||p.also.includes(s);
+// "perfect for" line and image description (alt text) for each painting, approved by Mery, Nov 2026
+const DETAILS = {
+"Why": {
+"perfect": "Sold. Commission a large seascape with a figure in your own colours.",
+"alt": "Acrylic painting of a woman in a red dress looking out over the sea at sunset, with a sailboat on the horizon, by Mery Zakkak"
+},
+"Lost in the City": {
+"perfect": "A living room or entrance wall that needs a strong focal point; anyone who has moved to a new city.",
+"alt": "Large acrylic painting of a woman seen from behind gazing at a blue city skyline with textured white flowers and waves in the sky"
+},
+"Waves of Change": {
+"perfect": "Sold. Commission a seascape like this one.",
+"alt": "Acrylic seascape of turquoise waves on a beach under purple storm clouds"
+},
+"Maybe I Didn’t Want to Move On": {
+"perfect": "Above a sofa or bed where its depth can be seen up close; collectors of expressive mixed media work. It comes in a silver wood frame, ready to hang.",
+"alt": "Mixed media painting of a falling angel in deep blues and blacks, with a beam of light breaking through"
+},
+"Dressed in Tears": {
+"perfect": "A bedroom or a quiet reading corner; a gift for someone going through a new beginning.",
+"alt": "Acrylic painting of a woman in a long blue dress standing at the sea, her dress turning into waves"
+},
+"She Danced with Broken Wings": {
+"perfect": "Sold. Commission something similar.",
+"alt": "Acrylic painting of a ballerina with white wings curled up under a starry night sky"
+},
+"There Is Always a New Day": {
+"perfect": "A home office, a child's room or a hallway that needs light; a gift for someone starting over.",
+"alt": "Acrylic painting of a vivid rainbow arching over black and white trees reflected in a lake"
+},
+"Para Olvidarte": {
+"perfect": "A kitchen, dining area or gallery wall; lovers of Frida Kahlo and Latin folk colour.",
+"alt": "Frida Kahlo inspired portrait with a red flower crown and orange flowers, painted in acrylic on an upcycled wooden serving board"
+},
+"Wing Waves": {
+"perfect": "A nursery, a bedside wall or a prayer corner; a meaningful gift for a new mother or someone grieving.",
+"alt": "Acrylic painting of an angel wrapped in textured white wings inside a swirling blue wave"
+},
+"Spread Your Wings": {
+"perfect": "A dressing room, studio or office; a gift for a graduation or a brave new chapter.",
+"alt": "Abstract acrylic painting of wings in magenta, purple and orange brushstrokes"
+},
+"This Is for You": {
+"perfect": "A gallery wall, an entryway or a bedroom; a gift that says exactly what its title does.",
+"alt": "Round acrylic painting of an abstract flower burst with dots on a green, blue and purple background"
+},
+"My Girl": {
+"perfect": "A bedroom, studio or creative workspace; collectors of expressive contemporary portraits.",
+"alt": "Expressive acrylic portrait of a woman's face in bold blue, red and gold brushstrokes"
+},
+"The Ghost of You": {
+"perfect": "A hallway or reading nook where it can surprise people; lovers of abstract figurative art.",
+"alt": "Round abstract acrylic painting of a faint face in golden yellow strokes over grey and violet"
+},
+"Trapped in Web": {
+"perfect": "A modern apartment, studio or office that welcomes a pop of neon; a conversation piece.",
+"alt": "Mixed media painting of an intricate coloured web with a dark figure in the centre, in a neon yellow acrylic frame"
+},
+"Sonrisa": {
+"perfect": "A girl's bedroom, a kitchen or a café corner; a cheerful gift for a Frida Kahlo fan.",
+"alt": "Colourful Frida Kahlo inspired portrait with a flower crown and pink cheeks on a turquoise background"
+},
+"Daisies": {
+"perfect": "A bedroom or entrance shelf; an anniversary, Mother's Day or Valentine's gift.",
+"alt": "Heart-shaped canvas painted with textured white and teal daisy-like petals on a dark green background"
+},
+"Touching Waves": {
+"perfect": "Sold. Commission an ocean pour in your colours.",
+"alt": "Abstract acrylic pour painting resembling ocean waves from above, in teal and white with gold leaf"
+},
+"La Flor del Dolor": {
+"perfect": "A kitchen, balcony room or boho living space; a gift for plant lovers.",
+"alt": "Acrylic painting of green cacti with white dots and red flowers on a turquoise background"
+},
+"Desert Moonlight": {
+"perfect": "A bedroom, a majlis or a living room with warm tones; a perfect UAE souvenir or housewarming gift.",
+"alt": "Minimalist acrylic painting of desert dunes in pink, red and turquoise under a crescent moon and stars"
+},
+"North Star": {
+"perfect": "A narrow wall beside a door or window; a meaningful UAE gift for someone leaving or arriving.",
+"alt": "Tall acrylic painting on wood of a desert night with a camel, palm tree, tent and full moon"
+},
+"Holding a World": {
+"perfect": "A colourful living room, a playroom or a creative office.",
+"alt": "Vibrant abstract acrylic painting with curving red, green and teal bands and glowing yellow circles"
+},
+"Stain": {
+"perfect": "A minimalist, monochrome interior; collectors of expressive figurative abstraction.",
+"alt": "Abstract acrylic painting of a pale figure in white and grey strokes with red marks"
+},
+"Wabi-Sabi": {
+"perfect": "Sold. Commission something similar.",
+"alt": "Acrylic painting of a green hummingbird on a branch with textured purple blossoms on turquoise"
+},
+"Lost": {
+"perfect": "A therapy room, a study or a calm bedroom; anyone drawn to art as healing. It comes framed in beige wood, ready to hang.",
+"alt": "Framed abstract line drawing in coloured lines and circles with a blue central path, created in an art therapy session"
+},
+"Low Sunset": {
+"perfect": "A shelf, desk or bedside table; a sweet, affordable gift for someone you love.",
+"alt": "Heart-shaped canvas painted with an orange and red sunset under a deep blue sky"
+},
+"Sunrise": {
+"perfect": "Sold. Commission a seascape like this.",
+"alt": "Textured acrylic seascape at sunrise with blue sea, white waves and golden sky"
+},
+"Blue Storm": {
+"perfect": "A small wall, a shelf or a study; an affordable first original.",
+"alt": "Small abstract acrylic painting of a swirling blue and white storm over dark shapes"
+},
+"One Fish in the Sea": {
+"perfect": "A modern minimalist space; a striking pop of red on a white or grey wall.",
+"alt": "Minimal abstract acrylic painting of a single red and gold swirl resembling a fish on white"
+},
+"Inherited Feelings": {
+"perfect": "A neutral, modern interior; perfect next to marble, wood and linen.",
+"alt": "Marbled acrylic pour painting in black, grey, white and bronze tones"
+},
+"Hit the Shore": {
+"perfect": "A bathroom, guest room or beach-style home; a lovely small gift. Framed in white.",
+"alt": "Small framed painting of a calm beach with turquoise sea, white waves and sand"
+},
+"Rainbow of Change": {
+"perfect": "A teen's room, a playroom or a creative studio; an affordable, joyful original.",
+"alt": "Colourful fluid acrylic painting in pink, purple, green and turquoise"
+},
+"Rainbow of Sadness": {
+"perfect": "A modern bedroom or workspace that needs energy; an affordable original.",
+"alt": "Acrylic pour painting with diagonal streams of neon green, purple, blue and pink"
+},
+"Fire Face": {
+"perfect": "A dining room or entrance where a red accent works; lovers of expressive abstract art.",
+"alt": "Abstract acrylic painting of a red and orange face shape traced with white lines on cream"
+},
+"Rippled": {
+"perfect": "A bathroom, shelf or small nook; a calming mini original.",
+"alt": "Small abstract acrylic painting of white ripples and circles on slate blue"
+},
+"Red Water": {
+"perfect": "A shelf, desk or gallery wall filler; the most affordable way to own an original.",
+"alt": "Small abstract acrylic painting of grey and white swirling circles with red accents"
+},
+"Nature Twirl": {
+"perfect": "Sold. Commission a landscape like this one.",
+"alt": "Acrylic and gesso landscape painting of cypress trees in a green meadow under a blue sky"
+},
+"Dance": {
+"perfect": "A dressing room, a dancer's home or a calm bedroom with blush tones.",
+"alt": "Abstract acrylic painting of a dancing figure with a textured white skirt in dusty pink tones"
+},
+"Scream": {
+"perfect": "A modern black-and-white interior; an affordable statement piece.",
+"alt": "Black, white and silver vertical acrylic pour painting"
+},
+"Fire": {
+"perfect": "A warm-toned living room or office; an affordable, energetic original.",
+"alt": "Acrylic pour painting with orange and gold flame-like shapes on deep red"
+},
+"The City": {
+"perfect": "A modern apartment, a young professional's home or a creative office.",
+"alt": "Abstract acrylic cityscape in neon pink, coral and purple with black marks"
+},
+"Windows": {
+"perfect": "A hallway, an office or a study; an affordable, graphic original.",
+"alt": "Abstract acrylic painting of purple and yellow brushstrokes forming a grid like lit windows"
+},
+"The Light in You": {
+"perfect": "A bedroom, a prayer corner or a gift for someone who has been your light.",
+"alt": "Acrylic painting of a glowing white angel figure in a dark green forest"
+},
+"One Tear Drop": {
+"perfect": "A bright modern living room or office where blue and yellow pop.",
+"alt": "Abstract acrylic painting with sweeping blue and yellow brushstrokes"
+},
+"The Road": {
+"perfect": "A living room, office or hallway; a gift for someone starting a new road in life.",
+"alt": "Acrylic landscape of a road winding between green flowering hills towards a turquoise sea"
+},
+"Ashes Statue": {
+"perfect": "A bedroom, a studio or a gallery wall; collectors of expressive female portraiture.",
+"alt": "Expressive acrylic portrait of a woman glancing over her shoulder in black, white, red and blue strokes"
+},
+"Warm Storm": {
+"perfect": "A neutral living room in blush, grey and beige; collectors of atmospheric abstracts.",
+"alt": "Abstract acrylic painting in blush pink and grey with dark figures and a golden halo"
+},
+"Mother Love": {
+"perfect": "A family room or a mother's bedroom; a heartfelt Mother's Day or birthday gift. Framed in wine red.",
+"alt": "Colourful abstract acrylic painting of intertwined blue, red and green strokes in a red frame"
+},
+"Dancing in the Rain": {
+"perfect": "A bright bedroom, a kids' room or a coastal-style home. Framed in blue.",
+"alt": "Abstract acrylic painting of flowing blue, green and red lines on white in a blue wood frame"
+},
+"Thinking of You": {
+"perfect": "Sold. Commission personalised calligraphy for a gift.",
+"alt": "Black ink calligraphy reading Thinking of You in a black frame"
+},
+"Out of Your Head": {
+"perfect": "A study, a teen's room or a bookshelf; a thoughtful gift for a dreamer.",
+"alt": "Ink and coloured pencil drawing of a woman's face with a planet emerging from her head"
+},
+"Rana": {
+"perfect": "Sold. Commission an animal painting for a child's room.",
+"alt": "Acrylic painting of a green tree frog with orange eyes on green stems against blue"
+},
+"Family Bond": {
+"perfect": "A family home staircase or living room wall; a meaningful gift for a family. Each piece can also be bought separately.",
+"alt": "Set of four textured canvases in white with pink, blue and yellow strokes, made with acrylic, gesso and beads"
+},
+"HOB": {
+"perfect": "A majlis, living room or bedroom; a wedding, engagement or anniversary gift with Arabic meaning.",
+"alt": "Acrylic, gesso and beads painting of Arabic calligraphy for love among white daisies in lilac and green"
+},
+"Aries Stars": {
+"perfect": "Sold. Commission a zodiac or star-sign piece.",
+"alt": "Round acrylic painting of a purple galaxy with a full moon, the Aries constellation and silhouetted pine trees"
+},
+"Autumn by the Water": {
+"perfect": "Sold.",
+"alt": "Chalk pastel landscape of orange autumn trees beside a calm lake"
+},
+"Olive Branch": {
+"perfect": "Sold. Commission botanical watercolours.",
+"alt": "Watercolour painting of an olive branch with green leaves"
+},
+"Blue Waves": {
+"perfect": "Sold. Commission a seascape.",
+"alt": "Textured acrylic painting of white waves on a deep blue sea"
+},
+"Somewhere Something Incredible": {
+"perfect": "Sold. Commission a quote painting.",
+"alt": "Abstract painting in green, pink and black with the quote somewhere something incredible is waiting to be known"
+},
+"Dumbo": {
+"perfect": "Sold.",
+"alt": "Abstract nail polish pour painting in pink, aqua and navy on white"
+},
+"The Little Prince": {
+"perfect": "Sold. Commission a story-inspired piece for a child's room.",
+"alt": "Acrylic night sky painting of a fox and a boy with a yellow scarf sitting under the stars"
+},
+"You Are My Universe": {
+"perfect": "Sold. Commission a personalised message painting.",
+"alt": "Acrylic and spray paint painting with moons and stars and the words you are my universe"
+},
+"Rainbow Pour": {
+"perfect": "Sold. Commission a pour in your colours.",
+"alt": "Acrylic pour painting in crimson, turquoise and violet"
+},
+"Golden Face": {
+"perfect": "Sold.",
+"alt": "Acrylic and gesso painting of a white palette knife figure on copper brown with a touch of gold"
+},
+"Ice": {
+"perfect": "Sold.",
+"alt": "Abstract acrylic painting of two figures in swirling white and navy strokes"
+},
+"Purple Sunrise": {
+"perfect": "Sold. Commission a couple's painting.",
+"alt": "Acrylic painting on wood of a couple embracing in front of a yellow sun with purple strokes"
+},
+"Florist": {
+"perfect": "A bedroom, bathroom or kitchen; a lovely gift for a flower lover.",
+"alt": "Watercolour painting of purple and violet flowers on green stems"
+}
+};
 // [title, series, year, medium, size, priceAED, sold, photo (images/<photo>.jpg), story, frame]
 const P = [
-["Why", "Find Your Wave", 2021, "Acrylic on canvas", "70 × 50 cm, 4 cm deep", 7000, 1, "47", "", ""],
-["Lost in the City", "Find Your Wave", 2023, "Acrylic on canvas", "70 × 50 cm, 4 cm deep", 4500, 0, "49", "", ""],
-["Waves of Change", "Find Your Wave", 2021, "Acrylic on canvas", "50 × 50 cm, 5 cm deep", 4000, 1, "46", "", ""],
+["Why", "Find Your Wave", 2021, "Acrylic on canvas", "70 × 50 cm, 4 cm deep", 7000, 1, "47", "A woman in a red backless dress leans on a sea wall at dusk, watching the last light melt into the water while a lone sailboat drifts on the horizon. The deep blues and the glow of the sunset hold a question she can't quite ask out loud. This is the painting that gave the Find Your Wave series its heart.", ""],
+["Lost in the City", "Find Your Wave", 2023, "Acrylic on canvas", "70 × 50 cm, 4 cm deep", 4500, 0, "49", "A woman with dark curls sits with her back to us, looking past a deep blue sea towards a dreamlike city skyline. White waves curl through the sky and burst into textured flowers, as if her thoughts were rising off the canvas. It's about feeling small in a big new city and still finding beauty in it. At 70 × 50 cm, it is one of the series' statement pieces.", ""],
+["Waves of Change", "Find Your Wave", 2021, "Acrylic on canvas", "50 × 50 cm, 5 cm deep", 4000, 1, "46", "Turquoise waves roll in to a sandy shore beneath a dramatic purple storm cloud. The textured white foam almost seems to move. It's a painting about the changes we don't choose and how they still carry us forward.", ""],
 ["Maybe I Didn’t Want to Move On", "Angels Still Between Worlds", 2025, "Mixed media on canvas", "70 × 50 cm, 4.5 cm deep", 3700, 0, "7", "A falling angel surrounded by deep blues and blacks, the heavy weight of past memories. Yet a bright beam of light breaks through the darkness below: hope, and the chance for new beginnings. Falling can lead to rising again if we choose to embrace the light.", "Silver wood frame"],
-["Dressed in Tears", "Find Your Wave", 2022, "Acrylic on canvas", "56 × 46 cm, 5 cm deep", 3500, 0, "48", "", ""],
+["Dressed in Tears", "Find Your Wave", 2022, "Acrylic on canvas", "56 × 46 cm, 5 cm deep", 3500, 0, "48", "A woman with long hair stands at the edge of the sea. Her blue gown flows into the waves and becomes the water itself. Calm and melancholy at once, it captures the moment of letting the tide take what we can't carry anymore.", ""],
 ["She Danced with Broken Wings", "Angels Still Between Worlds", 2022, "Acrylic on canvas", "30 × 20 cm, 2 cm deep", 2500, 1, "8", "A ballerina curled into herself, forehead resting on her knees, her tutu fanned like a wilted flower. No stage, no spotlight. Only the quiet ache of vulnerability. She is not performing. She is feeling.", ""],
-["There Is Always a New Day", "A Piece of Hope", 2025, "Acrylic on canvas", "60 × 50 cm, 1 cm deep", 2000, 0, "4", "", ""],
-["Para Olvidarte", "La Frida", 2024, "Acrylic on wood", "28 × 38 cm, 1 cm deep", 2000, 0, "25", "", ""],
-["Wing Waves", "Angels Still Between Worlds", 2025, "Acrylic on canvas", "30 × 24 cm, 1.5 cm deep", 1800, 0, "9", "", ""],
-["Spread Your Wings", "A Piece of Hope", 2022, "Acrylic on canvas", "30 × 20 cm, 4 cm deep", 950, 0, "0", "", ""],
-["This Is for You", "A Piece of Hope", 2024, "Acrylic on canvas", "40 cm, 1.5 cm deep", 950, 0, "2", "", ""],
-["My Girl", "Faces We Know", 2022, "Acrylic on canvas", "30 × 40 cm, 1.5 cm deep", 950, 0, "11", "", ""],
-["The Ghost of You", "Faces We Know", 2024, "Acrylic on canvas", "40 cm, 1.5 cm deep", 950, 0, "13", "", ""],
-["Trapped in Web", "Fluid Dream", 2023, "Mixed media on canvas", "24 × 31.5 cm, 5 cm deep", 900, 0, "18", "", "Neon yellow acrylic frame"],
-["Sonrisa", "La Frida", 2025, "Acrylic on canvas", "26 × 20 cm", 800, 0, "26", "", ""],
-["Daisies", "A Piece of Hope", 2025, "Acrylic on canvas", "40 × 40 cm, 2 cm deep", 800, 0, "36", "", ""],
-["Touching Waves", "Find Your Wave", 2022, "Acrylic and gold on canvas", "45 × 30 cm, 2 cm deep", 800, 1, "50", "", ""],
-["La Flor del Dolor", "La Frida", 2024, "Acrylic on canvas", "28 × 35 cm, 1 cm deep", 600, 0, "24", "", ""],
-["Desert Moonlight", "A Piece of Hope", 2023, "Acrylic on canvas", "40 × 30 cm, 1.5 cm deep", 600, 0, "37", "", ""],
-["North Star", "A Piece of Hope", 2021, "Acrylic on wood", "20 × 47 cm, 1 cm deep", 550, 0, "38", "", ""],
-["Holding a World", "Angels Still Between Worlds", 2025, "Acrylic on canvas", "20 × 30 cm, 1.5 cm deep", 500, 0, "6", "", ""],
-["Stain", "Faces We Know", 2021, "Acrylic on canvas", "30 × 40 cm, 1.5 cm deep", 500, 0, "12", "", ""],
-["Wabi-Sabi", "A Piece of Hope", 2021, "Acrylic on canvas", "20 × 30 cm", 500, 1, "45", "", ""],
+["There Is Always a New Day", "A Piece of Hope", 2025, "Acrylic on canvas", "60 × 50 cm, 1 cm deep", 2000, 0, "4", "A bright rainbow arcs over a dark, silvery forest and its reflection on still water. The trees stay in shades of black and grey while colour floods back in above and below. It's a painting of hope after a heavy season, a reminder that the morning always comes.", ""],
+["Para Olvidarte", "La Frida", 2024, "Acrylic on an upcycled wooden serving board", "28 × 38 cm, 1 cm deep", 2000, 0, "25", "A Frida-inspired portrait painted on an upcycled wooden serving board: a crown of deep red roses, gold beads and a calm, steady gaze, surrounded by scattered petals and big orange blooms. Para Olvidarte means \"to forget you\". It's about strength in letting go, worn proudly like flowers in the hair.", ""],
+["Wing Waves", "Angels Still Between Worlds", 2025, "Acrylic on canvas", "30 × 24 cm, 1.5 cm deep", 1800, 0, "9", "A small angel wrapped in her own textured white wing, framed by a sweeping blue wave. The thick palette work makes the feathers stand out from the canvas. It is gentle, protective and quietly hopeful.", ""],
+["Spread Your Wings", "A Piece of Hope", 2022, "Acrylic on canvas", "30 × 20 cm, 4 cm deep", 950, 0, "0", "Bold strokes of magenta, plum and fiery orange form a pair of wings opening upwards. It is pure energy and movement, painted fast and with feeling. It's a reminder that you were made to fly.", ""],
+["This Is for You", "A Piece of Hope", 2024, "Acrylic on canvas", "40 cm round, 1.5 cm deep", 950, 0, "2", "A burst of wildflowers and dots explodes across a round canvas, set against a sweep of emerald, purple and blue. It feels like a bouquet you never have to water. Its round shape makes it a lovely contrast on a wall of square frames.", ""],
+["My Girl", "Faces We Know", 2022, "Acrylic on canvas", "30 × 40 cm, 1.5 cm deep", 950, 0, "11", "A close-up face built from bold strokes of electric blue, red and gold, with eyes that hold yours. It's raw, expressive and full of feeling, a portrait of every girl who has been strong and soft at the same time.", ""],
+["The Ghost of You", "Faces We Know", 2024, "Acrylic on canvas", "40 cm round, 1.5 cm deep", 950, 0, "13", "A face appears and dissolves in sweeps of golden yellow over a smoky grey and violet ground, painted on a round canvas. You see it, then you don't, like a memory of someone you once knew.", ""],
+["Trapped in Web", "Fluid Dream", 2023, "Mixed media on canvas", "24 × 31.5 cm, 5 cm deep", 900, 0, "18", "Layers of fine line work and soft colour form a delicate web, with a dark figure caught at its centre. It's presented in a neon yellow acrylic frame that turns it into a modern object. It's about feeling tangled, and the beauty that can still exist inside it.", "Neon yellow acrylic frame"],
+["Sonrisa", "La Frida", 2025, "Acrylic on canvas", "26 × 20 cm, 0.2 cm deep", 800, 0, "26", "A joyful, graphic Frida with rosy cheeks, red lips, gold hoop earrings and a crown of textured flowers, set on a turquoise background with floating bubbles. Sonrisa means \"smile\", and it's impossible not to.", ""],
+["Daisies", "A Piece of Hope", 2025, "Acrylic on canvas", "40 cm heart-shaped, 2 cm deep", 800, 0, "36", "A heart-shaped canvas holds a bloom of white and teal daisy petals rising from deep ocean green. The textured palette strokes catch the light beautifully. It's a love letter to simple things that keep growing.", ""],
+["Touching Waves", "Find Your Wave", 2022, "Acrylic and gold on canvas", "45 × 30 cm, 2 cm deep", 800, 1, "50", "An acrylic pour that looks like the sea from above: deep teal water, white foam and veins of real gold where the waves touch. Every pour is unrepeatable, which makes this one-of-a-kind in the truest sense.", ""],
+["La Flor del Dolor", "La Frida", 2024, "Acrylic on canvas", "28 × 35 cm, 1 cm deep", 600, 0, "24", "Tall green cacti dotted in white bloom with bright red and orange flowers against a turquoise sky. La Flor del Dolor, the flower of pain, is about how even the toughest, spikiest seasons can still flower.", ""],
+["Desert Moonlight", "A Piece of Hope", 2023, "Acrylic on canvas", "40 × 30 cm, 1.5 cm deep", 600, 0, "37", "A pink crescent moon hangs over layered desert dunes in blush, red and turquoise, outlined in gold under a starry teal sky. It's a modern, minimal take on an Emirati desert night, calm and warm all at once.", ""],
+["North Star", "A Piece of Hope", 2021, "Acrylic on wood", "20 × 47 cm, 1 cm deep", 550, 0, "38", "A tall, narrow desert night scene painted on wood: a full moon, a palm tree, a Bedouin tent with a small glowing fire and a resting camel beneath a sky of stars. A quiet tribute to the UAE desert and to always finding your way home.", ""],
+["Holding a World", "Angels Still Between Worlds", 2025, "Acrylic on canvas", "20 × 30 cm, 1.5 cm deep", 500, 0, "6", "Curving bands of crimson, emerald, teal and gold flow around glowing yellow orbs, like a world being cradled. It's a vibrant, heavily textured abstract that changes as you walk past it. Keep rotating the canvas and new visions will unfold.", ""],
+["Stain", "Faces We Know", 2021, "Acrylic on canvas", "30 × 40 cm, 1.5 cm deep", 500, 0, "12", "A ghostly figure emerges from layers of white, grey and charcoal, marked with touches of deep red. It is raw and honest, about the marks life leaves on us and how we carry them with grace.", ""],
+["Wabi-Sabi", "A Piece of Hope", 2021, "Acrylic on canvas", "20 × 30 cm, 1 cm deep", 500, 1, "45", "A jewel-green hummingbird rests on a branch surrounded by clouds of textured lilac blossom against a soft turquoise sky. Wabi-sabi is the Japanese art of finding beauty in imperfection, and this piece celebrates exactly that.", ""],
 ["Lost", "I Feel", 2026, "Acrylic on canvas", "42 × 32 cm, 3 cm deep", 400, 0, "23", "Created during an art therapy session: lines and colour laid down without a plan, letting the feeling lead until the story appears on the paper.", "Beige wood frame"],
-["Low Sunset", "A Piece of Hope", 2023, "Acrylic on canvas", "20 × 20 cm, 1.5 cm deep", 350, 0, "3", "", ""],
-["Sunrise", "Find Your Wave", 2021, "Acrylic on canvas", "35 × 20 cm, 1 cm deep", 300, 1, "51", "", ""],
-["Blue Storm", "Angels Still Between Worlds", 2026, "Acrylic on canvas", "24 × 18 cm, 1 cm deep", 250, 0, "5", "", ""],
-["One Fish in the Sea", "Fluid Dream", 2026, "Acrylic on canvas", "18 × 25 cm, 1 cm deep", 250, 0, "28", "", ""],
-["Inherited Feelings", "Fluid Dream", 2025, "Acrylic on canvas", "30 × 24 cm, 4 cm deep", 250, 0, "22", "", ""],
-["Hit the Shore", "Find Your Wave", 2022, "Mixed media on canvas", "33 × 24 cm, 1.5 cm deep", 200, 0, "14", "", "White frame"],
-["Rainbow of Change", "Fluid Dream", 2022, "Acrylic on canvas", "30 × 24 cm, 1 cm deep", 100, 0, "16", "", ""],
-["Rainbow of Sadness", "Fluid Dream", 2022, "Acrylic on canvas", "30 × 22 cm, 1 cm deep", 100, 0, "17", "", ""],
-["Fire Face", "Fluid Dream", 2026, "Acrylic on canvas", "25 × 20 cm, 1 cm deep", 100, 0, "27", "", ""],
-["Rippled", "Ripples", 2026, "Acrylic on canvas", "16 cm, 1 cm deep", 75, 0, "30", "", ""],
-["Red Water", "Ripples", 2026, "Acrylic on canvas", "18 × 12 cm, 1 cm deep", 50, 0, "29", "", ""],
-["Nature Twirl", "A Piece of Hope", 2024, "Acrylic & gesso on canvas", "50 × 70 cm, 3 cm deep", 1100, 1, "1", "", ""],
-["Dance", "Angels Still Between Worlds", 2020, "Acrylic on canvas", "34 × 19 cm, 1 cm deep", 600, 0, "10", "", ""],
-["Scream", "Fluid Dream", 2021, "Acrylic on canvas", "30 × 40 cm, 1.5 cm deep", 100, 0, "19", "", ""],
-["Fire", "Fluid Dream", 2021, "Acrylic on canvas", "30 × 22 cm, 1.5 cm deep", 100, 0, "20", "", ""],
-["The City", "Fluid Dream", 2024, "Acrylic on canvas", "35 × 28 cm, 1.5 cm deep", 200, 0, "31", "", ""],
-["Windows", "Fluid Dream", 2025, "Acrylic on canvas", "20 × 30 cm, 1.5 cm deep", 200, 0, "32", "", ""],
-["The Light in You", "Angels Still Between Worlds", 2026, "Acrylic on canvas", "30 × 24 cm, 1.5 cm deep", 500, 0, "33", "", ""],
-["One Tear Drop", "Fluid Emotions", 2025, "Acrylic on canvas", "30 × 20 cm, 4 cm deep", 1200, 0, "34", "", ""],
-["The Road", "A Piece of Hope", 2025, "Acrylic on canvas", "40 × 40 cm, 1.5 cm deep", 800, 0, "35", "", ""],
+["Low Sunset", "A Piece of Hope", 2023, "Acrylic on canvas", "20 × 20 cm, 1.5 cm deep", 350, 0, "3", "A heart-shaped canvas painted with a fiery sunset: deep indigo fading into crimson, falling into a glowing orange horizon. It's small and warm, a sunset you can hold.", ""],
+["Sunrise", "Find Your Wave", 2021, "Acrylic on canvas", "35 × 20 cm, 1 cm deep", 300, 1, "51", "A thickly painted seascape at sunrise, with ochre sky, a navy horizon and white surf rolling across the canvas.", ""],
+["Blue Storm", "Angels Still Between Worlds", 2026, "Acrylic on canvas", "24 × 18 cm, 1 cm deep", 250, 0, "5", "Swirling sky-blue and white strokes crash over dark rock-like shapes, with small droplets of colour scattered through the storm. It's a small, energetic piece about the turbulence before the calm.", ""],
+["One Fish in the Sea", "Fluid Dream", 2026, "Acrylic on canvas", "18 × 25 cm, 1 cm deep", 250, 0, "28", "A single, bold sweep of crimson paint twists across a white canvas like a fish turning in the water, with flashes of gold in its body. It's minimal, confident and full of movement.", ""],
+["Inherited Feelings", "Fluid Dream", 2025, "Acrylic on canvas", "30 × 24 cm, 4 cm deep", 250, 0, "22", "A fluid pour of charcoal, silver, cream and soft bronze marbles across the canvas like polished stone. It's about the emotions we inherit from those before us, and how they swirl into something new.", ""],
+["Hit the Shore", "Find Your Wave", 2022, "Mixed media on canvas", "33 × 24 cm, 1.5 cm deep", 200, 0, "14", "A soft, airy beach scene with a pale sky, turquoise water and gentle white surf meeting golden sand. It's mounted in a white frame, a small piece of holiday calm.", "White frame"],
+["Rainbow of Change", "Fluid Dream", 2022, "Acrylic on canvas", "30 × 24 cm, 1 cm deep", 100, 0, "16", "A fluid explosion of hot pink, violet, lime and turquoise, with colours colliding and blending as they settle. It's about change: messy, bright and alive.", ""],
+["Rainbow of Sadness", "Fluid Dream", 2022, "Acrylic on canvas", "30 × 22 cm, 1 cm deep", 100, 0, "17", "Diagonal ribbons of neon green, violet, blue and pink stream across the canvas in a classic acrylic pour. It is bright on the surface with something deeper underneath, just like its title.", ""],
+["Fire Face", "Fluid Dream", 2026, "Acrylic on canvas", "25 × 20 cm, 1 cm deep", 100, 0, "27", "Bold strokes of crimson and flame orange sweep across a cream canvas, traced with fine white lines that hint at a face in profile. It's passionate and intense.", ""],
+["Rippled", "Ripples", 2026, "Acrylic on canvas", "16 × 16 cm, 1 cm deep", 75, 0, "30", "Swirls of white over slate blue form ripples and circles across the canvas, like rain landing on a still lake. It's a small, meditative piece from the Ripples series.", ""],
+["Red Water", "Ripples", 2026, "Acrylic on canvas", "18 × 12 cm, 1 cm deep", 50, 0, "29", "Circles of grey and white swirl like ripples on water, with threads of red running through them. It's tiny but full of rhythm.", ""],
+["Nature Twirl", "A Piece of Hope", 2024, "Acrylic & gesso on canvas", "50 × 70 cm, 3 cm deep", 1100, 1, "1", "A sunny landscape with tall cypress trees, a sweeping green meadow and a bright turquoise sky. Acrylic and gesso give the grass and clouds a lovely texture.", ""],
+["Dance", "Angels Still Between Worlds", 2020, "Acrylic on canvas", "34 × 19 cm, 1 cm deep", 600, 0, "10", "A figure seems to spin in a swirl of dusty rose and mauve, her white skirt flaring outward in thick, sculpted strokes. It is soft, nostalgic and full of motion.", ""],
+["Scream", "Fluid Dream", 2021, "Acrylic on canvas", "30 × 40 cm, 1.5 cm deep", 100, 0, "19", "Black, silver and white run down the canvas in a fluid pour, like a cry frozen mid-air. It's dramatic, monochrome and striking.", ""],
+["Fire", "Fluid Dream", 2021, "Acrylic on canvas", "30 × 22 cm, 1.5 cm deep", 100, 0, "20", "Orange and gold flames burst outward from the centre of a deep burgundy pour, like a flower made of fire.", ""],
+["The City", "Fluid Dream", 2024, "Acrylic on canvas", "35 × 28 cm, 1.5 cm deep", 200, 0, "31", "Layers of neon pink, coral and violet stack up like city lights at night, cut by bold black marks that suggest buildings and windows. It's an abstract cityscape full of buzz.", ""],
+["Windows", "Fluid Dream", 2025, "Acrylic on canvas", "20 × 30 cm, 1.5 cm deep", 200, 0, "32", "A grid of violet strokes broken by yellow dabs, like lit windows in an apartment block at night. Every square is someone's story.", ""],
+["The Light in You", "Angels Still Between Worlds", 2026, "Acrylic on canvas", "30 × 24 cm, 1.5 cm deep", 500, 0, "33", "A soft, lonely white angel-like figure glows in a forest of deep greens and browns, painted with thick, sculpted white lines. It's about the light someone brings into a dark place.", ""],
+["One Tear Drop", "Fluid Emotions", 2025, "Acrylic on canvas", "30 × 20 cm, 4 cm deep", 1200, 0, "34", "Sweeping strokes of cobalt and sunflower yellow curl across a split blue and yellow background, energetic, expressive and full of contrast. One tear can hold a whole storm.", ""],
+["The Road", "A Piece of Hope", 2025, "Acrylic on canvas", "40 × 40 cm, 1.5 cm deep", 800, 0, "35", "A winding grey road dips between lush green and pink-flowered hillsides towards a turquoise sea under a clear blue sky. It's a painting about the journey and the view that waits at the end.", ""],
 ["Ashes Statue", "Never Look Behind", 2024, "Acrylic on canvas", "40 × 30 cm, 2 cm deep", 1800, 0, "39", "Don’t look behind. With one glance over her shoulder she says goodbye without words, her eyes holding everything she leaves behind.", ""],
 ["Warm Storm", "Fluid Emotions", 2025, "Acrylic on canvas", "40 × 30 cm, 1.5 cm deep", 1800, 0, "40", "Life's journey leads to one destination through diverse paths. Warm colors symbolize renewal & the idea that each sunset precedes a sunrise. This golden contour of the sun signifies hope at the end of dark times. The blend of paths highlights life’s complexity, colors reflecting earth, fire,air,water that shape our realities shadows of different directions taken before reaching the golden gate. Through exploration, we discover our purpose and find our way to a peaceful, happier side.", ""],
-["Mother Love", "Fluid Emotions", 2024, "Acrylic on canvas", "34 × 28 cm, 3.5 cm deep", 700, 0, "41", "", "Wine red wood frame"],
-["Dancing in the Rain", "Fluid Emotions", 2024, "Acrylic on canvas", "26.5 × 36.5 cm, 6 cm deep", 700, 0, "42", "", "Blue wood frame"],
-["Thinking of You", "Words Expression", 2025, "Calligraphy ink on canvas", "21 × 15 cm, 2 cm deep", 100, 1, "43", "", "Black wood frame"],
-["Out of Your Head", "The Other World", 2024, "Colored pencil and ink on paper", "21.5 × 16.5 cm, 1.5 cm deep", 100, 0, "44", "", ""],
-["Rana", "A Piece of Hope", 2021, "Acrylic on canvas", "20 × 30 cm, 1 cm deep", 500, 1, "52", "", ""],
-["Family Bond", "Fluid Emotions", 2025, "Acrylic, Gesso & Beads on canvas", "Set of 4: 15 × 15, 20 × 15, 20 × 20 and 30 × 24 cm", 1600, 0, "fbg", "Four pieces painted as one family, each with its own size and character. Take the full set home, or ask about a single piece.", ""],
-["HOB", "Fluid Emotions", 2022, "Acrylic, Gesso & Beads on canvas", "53 × 40 cm, 2 cm deep", 2500, 0, "53", "Hob is the Arabic word for love.", ""],
+["Mother Love", "Fluid Emotions", 2024, "Acrylic on canvas", "34 × 28 cm, 3.5 cm deep", 700, 0, "41", "Ribbons of sky blue, red, lime and pink wrap around one another, like an embrace painted in colour. It's set in a wine-red wood frame, a joyful, tender piece about a mother's love.", "Wine red wood frame"],
+["Dancing in the Rain", "Fluid Emotions", 2024, "Acrylic on canvas", "26.5 × 36.5 cm, 6 cm deep", 700, 0, "42", "Fluid lines of blue, teal, green and burgundy dance down a white canvas, set deep in a blue wood frame. It's light and playful, joy in the middle of the rain.", "Blue wood frame"],
+["Thinking of You", "Words Expression", 2025, "Calligraphy ink on canvas", "21 × 15 cm, 2 cm deep", 100, 1, "43", "\"Thinking of You\" written in elegant modern calligraphy, framed in black.", "Black wood frame"],
+["Out of Your Head", "The Other World", 2024, "Colored pencil and ink on paper", "21.5 × 16.5 cm", 100, 0, "44", "A fine-line ink and coloured pencil drawing of a woman's face whose head opens into a planet, with stars and leaves around her. It's dreamy, surreal and delicate, from The Other World series.", "White frame"],
+["Rana", "A Piece of Hope", 2021, "Acrylic on canvas", "20 × 30 cm, 1 cm deep", 500, 1, "52", "A bright red-eyed tree frog clings to green stems against a deep blue night. Rana is Spanish for frog.", ""],
+["Family Bond", "Fluid Emotions", 2025, "Acrylic, Gesso & Beads on canvas", "Set of 4: 15 × 15, 20 × 15, 20 × 20 and 30 × 24 cm", 1600, 0, "fbg", "Four pieces painted as one family, each with its own size and character. Take the full set home, or ask about a single piece. Rotate the pieces to unfold new stories.", ""],
+["HOB", "Fluid Emotions", 2022, "Acrylic, Gesso & Beads on canvas", "53 × 40 cm, 2 cm deep", 2500, 0, "53", "Hob is the Arabic word for love. Lilac Arabic letterforms flow through a garden of textured white daisies, yellow light and deep green, with beads adding sparkle up close. It celebrates love written into nature itself.", ""],
 ["Aries Stars", "A Piece of Hope", 2021, "Acrylic on canvas", "45 × 45 cm, 2 cm deep", 3000, 1, "aries", "A custom piece made for an Aries, reflecting their ambition and dreaminess.", ""],
-["Autumn by the Water", "A Piece of Hope", null, "Chalk pastel on board", "", null, 1, "n3", "", ""],
-["Olive Branch", "A Piece of Hope", null, "Watercolour on paper", "", null, 1, "n4", "", ""],
-["Blue Waves", "Find Your Wave", null, "Acrylic on canvas", "", null, 1, "n8", "", ""],
-["Somewhere Something Incredible", "Fluid Dream", null, "Acrylic on canvas", "", null, 1, "n11", "", ""],
-["Dumbo", "Fluid Dream", null, "Nail polish on canvas", "", null, 1, "n15", "", ""],
-["The Little Prince", "A Piece of Hope", null, "Acrylic on canvas", "", null, 1, "n21", "", ""],
-["You Are My Universe", "A Piece of Hope", null, "Acrylic and spray paint on canvas", "", null, 1, "n25", "", ""],
+["Autumn by the Water", "A Piece of Hope", 2023, "Chalk pastel on board", "A3, 29.7 × 42 cm", null, 1, "n3", "A soft chalk pastel landscape: orange autumn trees reflected in still blue water.", ""],
+["Olive Branch", "A Piece of Hope", 2023, "Watercolour on paper", "", null, 1, "n4", "A delicate watercolour olive branch in soft greens with blush-tinged leaves, a symbol of peace.", ""],
+["Blue Waves", "Find Your Wave", 2023, "Acrylic on canvas", "", null, 1, "n8", "Diagonal rows of white surf break across deep ocean blue, thickly painted and full of motion.", ""],
+["Somewhere Something Incredible", "Fluid Dream", 2023, "Acrylic on canvas", "", null, 1, "n11", "\"Somewhere something incredible is waiting to be known\" is lettered in white over a dark, sparkling sweep of green, pink and violet.", ""],
+["Dumbo", "Fluid Dream", 2016, "Nail polish on canvas", "", null, 1, "n15", "A playful, abstract pour in pink, aqua and navy made with nail polish on canvas: a reminder that art can be made with anything.", ""],
+["The Little Prince", "A Piece of Hope", null, "Acrylic on canvas", "", null, 1, "n21", "A night-sky tribute to a beloved story: a fox and a golden-haired boy sit side by side under the stars, with the line about seeing rightly only with the heart.", ""],
+["You Are My Universe", "A Piece of Hope", null, "Acrylic and spray paint on canvas", "", null, 1, "n25", "\"You are my universe\" in hand lettering among spray-painted moons and stars on plum and gold.", ""],
 ["Rainbow Pour", "Fluid Dream", 2024, "Acrylic pour on canvas", "", null, 1, "n40", "From the rainbow colours collection, this pour now lives in the UK.", ""],
 ["Golden Face", "Faces We Know", 2024, "Acrylic & Gesso on canvas", "", null, 1, "n41", "Copper ground, a white palette knife figure and a single touch of gold.", ""],
-["Ice", "Fluid Emotions", 2021, "Acrylic on canvas", "", null, 1, "ice", "", ""],
-["Purple Sunrise", "Fluid Emotions", 2025, "Acrylic on wood", "", null, 1, "psun", "", ""],
-["Florist", "A Piece of Hope", 2022, "Watercolour on paper", "", null, 0, "florist", "", ""],
-].map((r,i)=>({i,title:r[0],series:r[1],also:ALSO_IN[r[0]]||[],year:r[2],medium:r[3],size:r[4],price:r[5],sold:!!r[6],file:r[7],img:r[7]?`images/${r[7]}-m.jpg`:null,big:r[7]?`images/${r[7]}.jpg`:null,story:r[8]||"",frame:r[9]||""}));
+["Ice", "Fluid Emotions", 2021, "Acrylic on canvas", "", null, 1, "ice", "Icy white and navy strokes swirl around two figures, like a frozen moment held between them.", ""],
+["Purple Sunrise", "Fluid Emotions", 2025, "Acrylic on wood", "", null, 1, "psun", "Two dark figures embrace in front of a golden sun, surrounded by brushstrokes of lilac, orange and purple, painted on wood.", ""],
+["Florist", "A Piece of Hope", 2022, "Watercolour on paper", "A4, 21 × 29.7 cm", 100, 0, "florist", "Loose watercolour flowers in violet, plum and lilac on slender green stems, fresh and light.", ""],
+].map((r,i)=>({i,title:r[0],series:r[1],also:ALSO_IN[r[0]]||[],year:r[2],medium:r[3],size:r[4],price:r[5],sold:!!r[6],file:r[7],img:r[7]?`images/${r[7]}-m.jpg`:null,big:r[7]?`images/${r[7]}.jpg`:null,story:r[8]||"",frame:r[9]||"",perfect:(DETAILS[r[0]]||{}).perfect||"",alt:(DETAILS[r[0]]||{}).alt||""}));
 // photo html: rotates the photos that are stored sideways in Drive
 const pic=(p,url,alt,lazy=true)=>{const s=SIZES[p.file]||[900,1200];return `<img src="${url}" alt="${alt}" width="${s[0]}" height="${s[1]}"${lazy?' loading="lazy"':""}>`};
 
@@ -399,7 +667,7 @@ const rank=t=>{const k=FEATURED.indexOf(t);return k<0?999:k};
 let view=[];
 function cardHTML(p,k,detailed){
   return `<article class="card${detailed?" detailed":""}" data-k="${k}">
-      <div class="img">${p.img?pic(p,p.img,esc(p.title)+", original painting by Mery Zakkak"):`<div class="pending">Photo coming soon</div>`}
+      <div class="img">${p.img?pic(p,p.img,esc(p.alt||p.title+", original painting by Mery Zakkak")):`<div class="pending">Photo coming soon</div>`}
         ${MEDIA[p.title]?`<span class="card-dots">${[0,...MEDIA[p.title]].map((_,k)=>`<i class="${k?"":"on"}"></i>`).join("")}</span>`:""}${p.sold?`<span class="ribbon">SOLD</span>`:saleOf(p)?`<span class="badge sale-b">${SALE*100}% off</span>`:""}</div>
       <h3>${esc(p.title)}</h3>
       <div class="meta">${esc(p.series)}${p.year?" · "+p.year:""}</div>
@@ -450,8 +718,9 @@ let lastCols=nColsNow(); addEventListener("resize",()=>{const n=nColsNow();if(n!
 
 // lightbox
 let cur=null;
-const PIECES={"Family Bond":[["Piece 1","15 × 15 cm · AED 300"],["Piece 2","20 × 15 cm · AED 300"],["Piece 3","20 × 20 cm · AED 500"],["Piece 4","30 × 24 cm · AED 500"]]};
+const PIECES={"Family Bond":[["Piece 1","15 × 15 cm, 2 cm deep · AED 300"],["Piece 2","20 × 15 cm, 2 cm deep · AED 300"],["Piece 3","20 × 20 cm, 4 cm deep · AED 500"],["Piece 4","30 × 24 cm, 4 cm deep · AED 500"]]};
 const IG_ICON='<svg viewBox="0 0 24 24"><path d="M12 7.3A4.7 4.7 0 1 0 12 16.7 4.7 4.7 0 0 0 12 7.3zm0 7.7a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm6-7.9a1.1 1.1 0 1 1-2.2 0 1.1 1.1 0 0 1 2.2 0zM16.8 2H7.2A5.2 5.2 0 0 0 2 7.2v9.6A5.2 5.2 0 0 0 7.2 22h9.6a5.2 5.2 0 0 0 5.2-5.2V7.2A5.2 5.2 0 0 0 16.8 2zm3.4 14.8a3.4 3.4 0 0 1-3.4 3.4H7.2a3.4 3.4 0 0 1-3.4-3.4V7.2a3.4 3.4 0 0 1 3.4-3.4h9.6a3.4 3.4 0 0 1 3.4 3.4z"/></svg>';
+const perfectHTML=p=>{if(!p.perfect)return "";if(p.sold){const t=p.perfect.replace(/^Sold\.\s*/,"");return t?`<p class="perfect">${esc(t)}</p>`:""}return `<p class="perfect"><b>Perfect for:</b> ${esc(p.perfect)}</p>`};
 function openLB(p){
   cur=p;
   showMedia(p,0);
@@ -463,6 +732,7 @@ function openLB(p){
     <h3>${esc(p.title)}</h3>
     ${stripHTML(p)}
     ${p.story?`<p class="story-t">${esc(p.story)}</p>`:""}
+    ${perfectHTML(p)}
     <dl class="details">${rows.map(([k,v])=>`<div><dt>${k}</dt><dd>${v&&v.html?v.html:esc(String(v))}</dd></div>`).join("")}</dl>
     <div class="price">${priceHTML(p)}</div>
     <div class="ask-row">
@@ -513,7 +783,7 @@ b.onclick=()=>scrollTo({top:0,behavior:"smooth"});document.body.appendChild(b);
 const t=()=>b.classList.toggle("show",scrollY>500);addEventListener("scroll",t,{passive:true});t();})();
 
 // the big logo starts at the top of the yellow banner, whatever its height
-(()=>{const s=document.querySelector(".sale");if(!s)return;const f=()=>document.documentElement.style.setProperty("--saleH",s.offsetHeight+"px");f();addEventListener("resize",f);})();
+(()=>{const s=document.querySelector(".sale");if(!s)return;if(!SALE){s.remove();document.documentElement.style.setProperty("--saleH","0px");return}const f=()=>document.documentElement.style.setProperty("--saleH",s.offsetHeight+"px");f();addEventListener("resize",f);})();
 
 // keep the story numbers in step with the painting list
 (()=>{const w=document.getElementById("statWorks"),s=document.getElementById("statSeries");if(w)w.textContent=P.length;if(s)s.textContent=new Set(P.map(p=>p.series)).size;})();
