@@ -635,6 +635,8 @@ const mailto = p => {
 };
 
 const slug = t => t.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+// painting pages (/paintings/<slug>/): keep the price in step with the sale
+const ppPrice=$("#ppPrice"); if(ppPrice){const q=byTitle(ppPrice.dataset.title); if(q) ppPrice.innerHTML=priceHTML(q);}
 if($("#bookLink")) $("#bookLink").href = BOOK_URL;
 const wc=$("#waContact"); if(wc){ wc.href=waLink("Hello Mery, I found your paintings on your website and would love to know more."); wc.insertAdjacentHTML("afterbegin",WA_ICON); }
 document.body.insertAdjacentHTML("beforeend",`<a class="wa-float" href="${waLink("Hello Mery, I found your paintings on your website and would love to know more.")}" target="_blank" rel="noopener" aria-label="Chat with Mery on WhatsApp">${WA_ICON}</a>`);
@@ -741,7 +743,8 @@ function openLB(p){
       <a class="ico ico-wa" href="${wa}" target="_blank" rel="noopener" aria-label="WhatsApp Mery" title="WhatsApp Mery">${WA_ICON}</a>
       <a class="ico ico-ig" href="https://www.instagram.com/paintings.bymery/" target="_blank" rel="noopener" aria-label="Message on Instagram" title="Message on Instagram">${IG_ICON}</a>
     </div>
-    <p class="note">Ask about shipping, framing or viewing in person in Abu Dhabi · ${EMAIL} · +971 56 338 0577</p>`;
+    <p class="note">Ask about shipping, framing or viewing in person in Abu Dhabi · ${EMAIL} · +971 56 338 0577</p>
+    <p class="note"><a class="pp-link" href="/paintings/${slug(p.title)}/">Open this painting's own page (to save or share) →</a></p>`;
   document.querySelectorAll(".lb-strip button").forEach(b=>b.onclick=()=>showMedia(p,+b.dataset.k));
   document.querySelectorAll("#lbInfo .ser-link").forEach(a=>a.onclick=e=>{if(!$("#grid"))return;e.preventDefault();closeLB();state.series=a.dataset.s;renderChips();render();history.replaceState(null,"","#"+slug(a.dataset.s));$("#gallery").scrollIntoView({behavior:"smooth"})});
   $("#lbInfo").scrollTop=0;
