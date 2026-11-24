@@ -293,6 +293,8 @@ blockquote em{color:var(--aqua)}
 .head p.one-line{max-width:none;white-space:nowrap}
 @media (max-width:760px){.head p.one-line{white-space:normal}}
 .book-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:6px}
+.btn-soon{cursor:default;opacity:.85}
+.btn-soon:hover{background:var(--ink);border-color:var(--ink);transform:none}
 .book-meta{margin:14px 0 0;font-size:13.5px;color:var(--muted)}
 
 /* extra media in the painting view */
