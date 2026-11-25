@@ -40,4 +40,4 @@ The same approach works for friends, celebrations and corporate wellbeing days, 
 
 ---
 
-**Curious?** [Message me on WhatsApp](https://wa.me/971563380577) and tell me a little about yourself, or read the first pages of [Art as My Therapy](/art-as-my-therapy.pdf) for free.
+**Curious?** [Message me on WhatsApp](https://wa.me/971563380577) and tell me a little about yourself, or read the first pages of [Art as My Therapy](/art-as-my-therapy.pdf) for free. The full book is on Amazon in [paperback](https://www.amazon.co.uk/dp/B0HSSV69CY) and on [Kindle](https://www.amazon.co.uk/dp/B0HS75QXTB).
